@@ -25,7 +25,7 @@ namespace ShoppingCartAPIs.Controllers
 
             UserCRUD userCRUD = new UserCRUD(shoppingDbContext, mapper);
             var listOrders = userCRUD.GetAllOrdersForUser(userGuid);
-            return Ok(listOrders);
+            return Ok(listOrders);           
         }
     }
 }

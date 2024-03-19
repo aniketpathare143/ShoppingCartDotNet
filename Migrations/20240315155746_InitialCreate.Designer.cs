@@ -12,7 +12,7 @@ using ShoppingCartAPIs.DataAccess;
 namespace ShoppingCartAPIs.Migrations
 {
     [DbContext(typeof(ShoppingDbContext))]
-    [Migration("20240309163906_InitialCreate")]
+    [Migration("20240315155746_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -51,22 +51,46 @@ namespace ShoppingCartAPIs.Migrations
                     b.Property<DateTime>("PlacedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("PlacedQuantity")
+                    b.Property<int>("ProductPlacedCount")
                         .HasColumnType("int");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("OrderId");
 
-                    b.HasIndex("ProductId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("ShoppingCartAPIs.Models.PlacedOrder", b =>
+                {
+                    b.Property<Guid>("PlacedOrderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("PlacedQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("PlacedOrderId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("PlacedOrders");
                 });
 
             modelBuilder.Entity("ShoppingCartAPIs.Models.Product", b =>
@@ -151,21 +175,40 @@ namespace ShoppingCartAPIs.Migrations
 
             modelBuilder.Entity("ShoppingCartAPIs.Models.Order", b =>
                 {
-                    b.HasOne("ShoppingCartAPIs.Models.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("ShoppingCartAPIs.Models.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Product");
-
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ShoppingCartAPIs.Models.PlacedOrder", b =>
+                {
+                    b.HasOne("ShoppingCartAPIs.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShoppingCartAPIs.Models.Order", "Order")
+                        .WithMany("PlacedOrders")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShoppingCartAPIs.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("ShoppingCartAPIs.Models.Product", b =>
@@ -193,6 +236,11 @@ namespace ShoppingCartAPIs.Migrations
             modelBuilder.Entity("ShoppingCartAPIs.Models.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("ShoppingCartAPIs.Models.Order", b =>
+                {
+                    b.Navigation("PlacedOrders");
                 });
 
             modelBuilder.Entity("ShoppingCartAPIs.Models.Product", b =>

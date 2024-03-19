@@ -10,6 +10,7 @@ namespace ShoppingCartAPIs.DataAccess
         public DbSet<Order> Orders { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<UserReview> UserReviews { get; set; }
+        public DbSet<PlacedOrder> PlacedOrders { get; set; }
 
         public ShoppingDbContext(DbContextOptions<ShoppingDbContext> options)
             : base(options)
@@ -31,6 +32,13 @@ namespace ShoppingCartAPIs.DataAccess
             modelBuilder.Entity<User>()
                 .Property(e => e.DOB)
                 .HasColumnType("Date");
+
+            // Configure the relationship between PlacedOrder and Product
+            modelBuilder.Entity<PlacedOrder>()
+                .HasOne(p => p.Product)
+                .WithMany()
+                .HasForeignKey(p => p.ProductId)
+                .OnDelete(DeleteBehavior.Restrict); // Specify the desired cascade behavior here
         }
     }
 }

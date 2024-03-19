@@ -2,10 +2,9 @@
 {
     public class UserGetOrderDTO
     {
-        public string? Name { get; set; }
-        public string? CategoryName { get; set; }
-        public string? ProductName { get; set; }
-        public int PlacedQuantity { get; set; }
-        public DateTime PlacedAt { get; set; }
+        public Guid UserId { get; set; }
+        public string? UserName { get; set; }
+
+        public List<RetrieveOrderDTO> RetrieveOrders { get; set; }
     }
 }

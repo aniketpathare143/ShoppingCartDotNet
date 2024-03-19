@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using ShoppingCartAPIs.DataAccess;
 using ShoppingCartAPIs.DTOs;
@@ -17,34 +18,34 @@ namespace ShoppingCartAPIs.DatabaseLayer.ShoppingCart.Orders
             this.mapper = mapper;
         }
 
-        public Guid PlaceSingleOrder(OrderDTO order)
-        {
-            try
-            {
-                var orderRecord = mapper.Map<Order>(order);
-                var insertedOrder = shoppingDbContext.Orders.Add(orderRecord);
-                orderRecord.OrderId = insertedOrder.Property(e => e.OrderId).CurrentValue;
+        //public Guid PlaceSingleOrder(OrderDTO order)
+        //{
+        //    try
+        //    {
+        //        var orderRecord = mapper.Map<Order>(order);
+        //        var insertedOrder = shoppingDbContext.Orders.Add(orderRecord);
+        //        orderRecord.OrderId = insertedOrder.Property(e => e.OrderId).CurrentValue;
 
-                //Find the product and its qty and update the product with reminaing qty
-                var product = shoppingDbContext.Products.Where(o => o.ProductId == order.ProductId).FirstOrDefault();
+        //        //Find the product and its qty and update the product with reminaing qty
+        //        var product = shoppingDbContext.Products.Where(o => o.ProductId == order.ProductId).FirstOrDefault();
 
-                if (product != null)
-                {
-                    int availableQty = product.AvailableQuantity;
-                    int remainingQty = availableQty - order.PlacedQuantity;
-                    product.AvailableQuantity = remainingQty;
-                }
+        //        if (product != null)
+        //        {
+        //            int availableQty = product.AvailableQuantity;
+        //            int remainingQty = availableQty - order.PlacedQuantity;
+        //            product.AvailableQuantity = remainingQty;
+        //        }
 
-                // shoppingDbContext.Entry(product).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+        //        // shoppingDbContext.Entry(product).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
-                shoppingDbContext.SaveChanges();
-                return orderRecord.ProductId;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
+        //        shoppingDbContext.SaveChanges();
+        //        return orderRecord.ProductId;
+        //    }
+        //    catch (Exception)
+        //    {
+        //        throw;
+        //    }
+        //}
 
         public bool RemoveOrder(Guid orderGuid)
         {
@@ -53,9 +54,16 @@ namespace ShoppingCartAPIs.DatabaseLayer.ShoppingCart.Orders
                 var orderRecord = shoppingDbContext.Orders.Where(c => c.OrderId == orderGuid).FirstOrDefault();
                 if (orderRecord != null)
                 {
+                    var placedOrders = shoppingDbContext.PlacedOrders.Where(p => p.OrderId == orderGuid).ToList();
+                    if (placedOrders != null)
+                    {
+                        shoppingDbContext.PlacedOrders.RemoveRange(placedOrders);
+                    }
+
                     shoppingDbContext.Orders.Remove(orderRecord);
                     shoppingDbContext.SaveChanges();
                     return true;
+
                 }
                 return false;
             }
@@ -65,29 +73,28 @@ namespace ShoppingCartAPIs.DatabaseLayer.ShoppingCart.Orders
             }
         }
 
-        public bool PlaceOrder(List<OrderDTO> listOrders)
+        public Guid PlaceOrder(OrderDTO order)
         {
             try
             {
-                foreach (var order in listOrders)
+                OrderDTO newOrder = new OrderDTO()
                 {
-                    var orderRecord = mapper.Map<Order>(order);
-                    var insertedOrder = shoppingDbContext.Orders.Add(orderRecord);
-                    orderRecord.OrderId = insertedOrder.Property(e => e.OrderId).CurrentValue;
+                    UserId = order.UserId,
+                    ProductPlacedCount = order.PlacedOrders.Count,
+                };
+                var orderRecord = mapper.Map<Order>(newOrder);
+                var insertedOrder = shoppingDbContext.Orders.Add(orderRecord);
 
-                    //Find the product and its qty and update the product with reminaing qty
-                    var product = shoppingDbContext.Products.Where(o => o.ProductId == order.ProductId).FirstOrDefault();
+                var insertedOrderId = insertedOrder.Entity.OrderId;
 
-                    if (product != null)
-                    {
-                        int availableQty = product.AvailableQuantity;
-                        int remainingQty = availableQty - order.PlacedQuantity;
-                        product.AvailableQuantity = remainingQty;
-                    }
-
-                    shoppingDbContext.SaveChanges();
+                foreach (var placedOrder in order.PlacedOrders)
+                {
+                    var placedOrderRecord = mapper.Map<PlacedOrder>(placedOrder);
+                    placedOrderRecord.OrderId = insertedOrderId ?? Guid.Empty;
+                    var insertedPlacedOrder = shoppingDbContext.PlacedOrders.Add(placedOrderRecord);
                 }
-                return true;
+                shoppingDbContext.SaveChanges();
+                return insertedOrderId ?? Guid.Empty;
             }
             catch (Exception)
             {

@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
 using ShoppingCartAPIs.DataAccess;
 using ShoppingCartAPIs.DTOs;
+using ShoppingCartAPIs.Models;
 
 namespace ShoppingCartAPIs.DatabaseLayer.ShoppingCart.Users
 {
     public class UserCRUD
     {
         private readonly ShoppingDbContext shoppingDbContext;
-        private readonly IMapper mapper;       
+        private readonly IMapper mapper;
 
         public UserCRUD(ShoppingDbContext shoppingDbContext, IMapper mapper)
         {
@@ -15,51 +16,67 @@ namespace ShoppingCartAPIs.DatabaseLayer.ShoppingCart.Users
             this.mapper = mapper;
         }
 
-        public List<UserGetOrderDTO> GetAllOrdersForUser(Guid userGuid)
+        public UserGetOrderDTO GetAllOrdersForUser(Guid userGuid)
         {
             try
             {
                 UserGetOrderDTO userGetOrderDTO;
-                List<UserGetOrderDTO> listOrders = new List<UserGetOrderDTO>();
+                List<RetrievePlacedOrderDTO> listOrders;
+                List<RetrieveOrderDTO> listRetrieveOrders;
 
+                userGetOrderDTO = new UserGetOrderDTO();
                 var userRecord = shoppingDbContext.Users.Where(c => c.UserId == userGuid).FirstOrDefault();
                 if (userRecord != null)
                 {
+                    userGetOrderDTO.UserName = userRecord.FirstName + " " + userRecord.LastName;
+                    userGetOrderDTO.UserId = userRecord.UserId;
                     var userOrders = shoppingDbContext.Orders.Where(c => c.UserId == userGuid).ToList();
                     if (userOrders.Count > 0)
                     {
+                        //Iterate Order table here
+                        listRetrieveOrders = new List<RetrieveOrderDTO>();
                         foreach (var order in userOrders)
                         {
-                            userGetOrderDTO = new UserGetOrderDTO();
+                            RetrieveOrderDTO retrieveOrder = new RetrieveOrderDTO();
+                            retrieveOrder.OrderId = order.OrderId ?? Guid.Empty;
+                            retrieveOrder.ProductPlacedCount = order.ProductPlacedCount;
+                            retrieveOrder.PlacedAt = order.PlacedAt;
 
-                            userGetOrderDTO.Name = order.User?.FirstName + " " + order.User?.LastName;
-                            userGetOrderDTO.PlacedQuantity = order.PlacedQuantity;
-                            userGetOrderDTO.PlacedAt = order.PlacedAt;
-
-                            //For product name and categories name we need to search in Categories and Product table
-                            var product = shoppingDbContext.Products.Where(p => p.ProductId == order.ProductId).FirstOrDefault();
-                            if (product != null)
+                            //Iterate PlaceOrder table here
+                            listOrders = new List<RetrievePlacedOrderDTO>();
+                            var userPlacedOrders = shoppingDbContext.PlacedOrders.Where(c => c.OrderId == order.OrderId).ToList();
+                            foreach (var placedOrder in userPlacedOrders)
                             {
-                                userGetOrderDTO.ProductName = product.ProductName;
-
-                                var category = shoppingDbContext.Categories.Where(c => c.CategoryId == product.CategoryId).FirstOrDefault();
-                                if (category != null)
+                                RetrievePlacedOrderDTO retrievePlacedOrderDTO = new RetrievePlacedOrderDTO();
+                                //For product name and categories name we need to search in Categories and Product table
+                                var product = shoppingDbContext.Products.Where(p => p.ProductId == placedOrder.ProductId).FirstOrDefault();
+                                if (product != null)
                                 {
-                                    userGetOrderDTO.CategoryName = category.CategoryName;
+                                    retrievePlacedOrderDTO.PlacedOrderId = placedOrder.PlacedOrderId;
+                                    retrievePlacedOrderDTO.ProductName = product.ProductName;
+                                    retrievePlacedOrderDTO.PlacedQuantity= placedOrder.PlacedQuantity;
+                                    var category = shoppingDbContext.Categories.Where(c => c.CategoryId == placedOrder.CategoryId).FirstOrDefault();
+                                    if (category != null)
+                                    {
+                                        retrievePlacedOrderDTO.CategoryName = category.CategoryName;
+                                    }
                                 }
+                                listOrders.Add(retrievePlacedOrderDTO);
                             }
-                            listOrders.Add(userGetOrderDTO);
+                            retrieveOrder.RetrievePlacedOrders = listOrders;
+                            listRetrieveOrders.Add(retrieveOrder);
                         }
+                        userGetOrderDTO.RetrieveOrders = listRetrieveOrders;
                     }
                 }
 
-                return listOrders;
+                return userGetOrderDTO;
             }
             catch (Exception)
             {
                 throw;
             }
         }
-               
+
     }
 }

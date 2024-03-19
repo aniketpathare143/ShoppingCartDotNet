@@ -30,11 +30,11 @@ namespace ShoppingCartAPIs.Controllers
         //}
 
         [HttpPost]
-        public ActionResult PlaceOrder(List<OrderDTO> order)
+        public ActionResult PlaceOrder(OrderDTO order)
         {
             OrderCRUD orderCRUD = new OrderCRUD(shoppingDbContext, mapper);
             var orderKey = orderCRUD.PlaceOrder(order);
-            return Ok(orderKey);
+            return Ok(orderKey);            
         }
 
 
