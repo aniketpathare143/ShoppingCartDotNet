@@ -70,6 +70,7 @@ namespace ShoppingCartAPIs.Migrations
                     OrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     PlacedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ProductPlacedCount = table.Column<int>(type: "int", nullable: false),
+                    PriceTotal = table.Column<double>(type: "float", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>

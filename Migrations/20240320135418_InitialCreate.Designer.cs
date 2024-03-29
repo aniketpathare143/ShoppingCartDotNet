@@ -12,7 +12,7 @@ using ShoppingCartAPIs.DataAccess;
 namespace ShoppingCartAPIs.Migrations
 {
     [DbContext(typeof(ShoppingDbContext))]
-    [Migration("20240315155746_InitialCreate")]
+    [Migration("20240320135418_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -44,12 +44,15 @@ namespace ShoppingCartAPIs.Migrations
 
             modelBuilder.Entity("ShoppingCartAPIs.Models.Order", b =>
                 {
-                    b.Property<Guid>("OrderId")
+                    b.Property<Guid?>("OrderId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("PlacedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<double>("PriceTotal")
+                        .HasColumnType("float");
 
                     b.Property<int>("ProductPlacedCount")
                         .HasColumnType("int");

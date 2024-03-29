@@ -7,6 +7,7 @@ namespace ShoppingCartAPIs.DTOs
         public Guid? OrderId { get; set; }
         public Guid UserId { get; set; }
         public int ProductPlacedCount { get; set; } = 0;
+        public double PriceTotal { get; set; }
         public DateTime PlacedAt { get; set; } = DateTime.Now;        
         public List<PlacedOrderDTO>? PlacedOrders { get; set; }
         

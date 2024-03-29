@@ -41,6 +41,7 @@ namespace ShoppingCartAPIs.DatabaseLayer.ShoppingCart.Users
                             retrieveOrder.OrderId = order.OrderId ?? Guid.Empty;
                             retrieveOrder.ProductPlacedCount = order.ProductPlacedCount;
                             retrieveOrder.PlacedAt = order.PlacedAt;
+                            retrieveOrder.PriceTotal = order.PriceTotal;
 
                             //Iterate PlaceOrder table here
                             listOrders = new List<RetrievePlacedOrderDTO>();

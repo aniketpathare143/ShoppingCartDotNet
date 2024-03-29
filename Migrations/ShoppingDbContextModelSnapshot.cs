@@ -41,12 +41,15 @@ namespace ShoppingCartAPIs.Migrations
 
             modelBuilder.Entity("ShoppingCartAPIs.Models.Order", b =>
                 {
-                    b.Property<Guid>("OrderId")
+                    b.Property<Guid?>("OrderId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("PlacedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<double>("PriceTotal")
+                        .HasColumnType("float");
 
                     b.Property<int>("ProductPlacedCount")
                         .HasColumnType("int");
